@@ -101,6 +101,46 @@ input[type="time"]:disabled { opacity: .45; }
 .count { font-size: 12px; font-weight: 600; opacity: .75; }
 .badge-danger { font-size: 12px; font-weight: 600; color: var(--danger); background: var(--danger-soft); padding: 1px 8px; border-radius: 999px; }
 
+.tabs-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 22px 0 10px; }
+.tabs-row .tabs { margin: 0; flex-wrap: wrap; }
+.view-toggle { display: flex; gap: 2px; padding: 3px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.view-btn {
+  display: grid; place-items: center; width: 32px; height: 28px; border: 0; border-radius: 7px;
+  background: transparent; color: var(--muted); cursor: pointer;
+}
+.view-btn:hover { color: var(--text); }
+.view-btn.active { background: var(--accent-soft); color: var(--accent); }
+
+/* Secciones */
+.sections { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px; }
+.sec {
+  font: inherit; font-size: 13px; font-weight: 500; color: var(--text); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.sec:hover { border-color: var(--cat, var(--accent)); }
+.sec.active { background: color-mix(in srgb, var(--cat, var(--accent)) 16%, var(--surface)); border-color: var(--cat, var(--accent)); }
+.sec.new { color: var(--muted); border-style: dashed; background: transparent; }
+.sec.new:hover { color: var(--accent); border-color: var(--accent); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--cat); flex: none; }
+
+select {
+  font: inherit; font-size: 14px; color: var(--text); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; max-width: 150px;
+}
+dialog select { display: block; width: 100%; max-width: none; margin-top: 4px; padding: 9px 8px; font-size: 16px; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.cat-tag {
+  font-size: 12px; font-weight: 600; padding: 1px 9px; border-radius: 999px;
+  color: var(--cat); background: color-mix(in srgb, var(--cat) 14%, transparent);
+}
+
+.field-label { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; background: var(--cat); cursor: pointer; padding: 0; }
+.swatch.on { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--cat); }
+
 .chip {
   font: inherit; font-size: 13px; color: var(--accent); background: var(--accent-soft);
   border: 0; border-radius: 999px; padding: 4px 12px; cursor: pointer; margin-bottom: 6px;
@@ -139,6 +179,25 @@ input[type="time"]:disabled { opacity: .45; }
 .actions { display: flex; opacity: 0; transition: opacity .12s; }
 .task:hover .actions, .task:focus-within .actions { opacity: 1; }
 @media (hover: none) { .actions { opacity: 1; } }
+
+/* Vista en cuadros */
+.tasks.tiles { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.tiles .task {
+  position: relative; flex-direction: column; align-items: stretch; gap: 10px; min-height: 130px;
+  padding: 14px; border-top: 4px solid var(--cat, var(--accent)); box-shadow: var(--shadow);
+}
+.group h3.danger + .tasks.tiles .task, .tiles .task.overdue { border-top-color: var(--danger); background: color-mix(in srgb, var(--danger-soft) 55%, var(--surface)); }
+.tiles .task.done { border-top-color: var(--ok); opacity: .75; }
+.tiles .task .body { flex: 1; justify-content: space-between; gap: 8px; }
+.tiles .task .title { font-size: 17px; font-weight: 600; line-height: 1.25; }
+.tiles .task .tags { align-self: flex-start; }
+.tiles .task .meta {
+  font-size: 12px; padding: 2px 9px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent);
+}
+.tiles .task.overdue .meta { background: var(--danger-soft); color: var(--danger); }
+.tiles .task .check { width: 30px; height: 30px; order: -1; }
+.tiles .task .actions { position: absolute; top: 8px; right: 8px; }
 
 .empty { text-align: center; padding: 56px 16px; }
 .empty strong { font-size: 18px; }

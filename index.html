@@ -21,12 +21,17 @@
       <section class="main">
         <form id="quick-add" class="quick-add" autocomplete="off">
           <input id="qa-title" type="text" placeholder="Agregar una tarea…" maxlength="200" required autofocus>
+          <select id="qa-cat" title="Sección (opcional)" aria-label="Sección"></select>
           <input id="qa-date" type="date" title="Fecha (opcional)">
           <input id="qa-time" type="time" title="Hora (opcional)" disabled>
           <button type="submit" class="btn primary">Agregar</button>
         </form>
 
-        <nav class="tabs" id="tabs" aria-label="Vista"></nav>
+        <div class="tabs-row">
+          <nav class="tabs" id="tabs" aria-label="Vista"></nav>
+          <div class="view-toggle" id="view-toggle" role="group" aria-label="Forma de mostrar"></div>
+        </div>
+        <div id="sections" class="sections" aria-label="Secciones"></div>
         <div id="filter-chip"></div>
         <div id="task-list"></div>
       </section>
@@ -42,6 +47,9 @@
       <h2>Editar tarea</h2>
       <label>Tarea
         <input id="ed-title" type="text" maxlength="200" required>
+      </label>
+      <label>Sección
+        <select id="ed-cat"></select>
       </label>
       <div class="row">
         <label>Fecha
@@ -60,10 +68,28 @@
     </form>
   </dialog>
 
+  <dialog id="cat-dialog">
+    <form id="cat-form" method="dialog" autocomplete="off">
+      <h2 id="cat-heading">Nueva sección</h2>
+      <label>Nombre
+        <input id="cat-name" type="text" maxlength="30" placeholder="Ej: Gimnasio, Universidad…" required>
+      </label>
+      <div class="field-label">Color</div>
+      <div id="cat-colors" class="swatches" role="radiogroup" aria-label="Color"></div>
+      <div class="dialog-actions">
+        <button type="button" id="cat-delete" class="btn danger">Eliminar</button>
+        <span class="spacer"></span>
+        <button type="button" id="cat-cancel" class="btn">Cancelar</button>
+        <button type="submit" class="btn primary">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
   <div id="toasts" aria-live="polite"></div>
 
   <script src="js/dates.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/categories.js"></script>
   <script src="js/tasks.js"></script>
   <script src="js/reminders.js"></script>
   <script src="js/calendar.js"></script>
