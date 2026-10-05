@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Tareas</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div>
+        <h1>Tareas</h1>
+        <p id="today-label" class="muted"></p>
+      </div>
+      <button id="btn-bell" class="icon-btn" type="button" title="Activar recordatorios" aria-label="Activar recordatorios"></button>
+    </header>
+
+    <main class="layout">
+      <section class="main">
+        <form id="quick-add" class="quick-add" autocomplete="off">
+          <input id="qa-title" type="text" placeholder="Agregar una tarea…" maxlength="200" required autofocus>
+          <input id="qa-date" type="date" title="Fecha (opcional)">
+          <input id="qa-time" type="time" title="Hora (opcional)" disabled>
+          <button type="submit" class="btn primary">Agregar</button>
+        </form>
+
+        <nav class="tabs" id="tabs" aria-label="Vista"></nav>
+        <div id="filter-chip"></div>
+        <div id="task-list"></div>
+      </section>
+
+      <aside class="side">
+        <div id="calendar" class="calendar"></div>
+      </aside>
+    </main>
+  </div>
+
+  <dialog id="edit-dialog">
+    <form id="edit-form" method="dialog" autocomplete="off">
+      <h2>Editar tarea</h2>
+      <label>Tarea
+        <input id="ed-title" type="text" maxlength="200" required>
+      </label>
+      <div class="row">
+        <label>Fecha
+          <input id="ed-date" type="date">
+        </label>
+        <label>Hora
+          <input id="ed-time" type="time" disabled>
+        </label>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="ed-delete" class="btn danger">Eliminar</button>
+        <span class="spacer"></span>
+        <button type="button" id="ed-cancel" class="btn">Cancelar</button>
+        <button type="submit" class="btn primary">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toasts" aria-live="polite"></div>
+
+  <script src="js/dates.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/reminders.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
