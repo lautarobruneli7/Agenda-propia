@@ -32,12 +32,7 @@
     if (showDate && t.date) meta.push(App.dates.label(t.date));
     if (t.time) meta.push(t.time);
 
-    const cat = App.categories.get(t.categoryId);
-
-    return h('li', {
-      class: ['task', t.done && 'done', overdue && 'overdue'].filter(Boolean).join(' '),
-      style: cat ? `--cat:${cat.color}` : null,
-    },
+    return h('li', { class: ['task', t.done && 'done', overdue && 'overdue'].filter(Boolean).join(' ') },
       h('button', {
         type: 'button', class: 'check', 'aria-pressed': String(t.done),
         'aria-label': t.done ? 'Marcar como pendiente' : 'Marcar como completada',
@@ -45,9 +40,7 @@
       }, icon('check')),
       h('div', { class: 'body', onclick: () => handlers.onEdit(t.id) },
         h('span', { class: 'title' }, t.title),
-        h('span', { class: 'tags' },
-          cat ? h('span', { class: 'cat-tag' }, cat.name) : null,
-          meta.length ? h('span', { class: 'meta' }, meta.join(' · ')) : null)
+        meta.length ? h('span', { class: 'meta' }, meta.join(' · ')) : null
       ),
       h('div', { class: 'actions' },
         h('button', { type: 'button', class: 'icon-btn sm', title: 'Editar', 'aria-label': 'Editar', onclick: () => handlers.onEdit(t.id) }, icon('edit')),
@@ -56,10 +49,10 @@
     );
   }
 
-  function group(g, handlers, view) {
+  function group(g, handlers) {
     return h('section', { class: 'group' },
       h('h3', { class: g.tone || '' }, g.label, h('span', { class: 'count' }, String(g.items.length))),
-      h('ul', { class: 'tasks' + (view === 'tiles' ? ' tiles' : '') }, g.items.map((t) => taskRow(t, { showDate: g.showDate }, handlers)))
+      h('ul', { class: 'tasks' }, g.items.map((t) => taskRow(t, { showDate: g.showDate }, handlers)))
     );
   }
 
@@ -75,103 +68,22 @@
     let empty = EMPTY.pending;
 
     if (state.selectedDate) {
-      const items = App.tasks.forDay(state.selectedDate, state.category);
+      const items = App.tasks.forDay(state.selectedDate);
       groups = items.length ? [{ label: App.dates.label(state.selectedDate), tone: 'accent', items }] : [];
       empty = EMPTY.day;
     } else if (state.tab === 'done') {
-      const items = App.tasks.completed(state.category);
+      const items = App.tasks.completed();
       groups = items.length ? [{ label: 'Completadas', items, showDate: true }] : [];
       empty = EMPTY.done;
     } else {
-      groups = App.tasks.groupPending(new Date(), state.category);
+      groups = App.tasks.groupPending();
     }
 
     if (!groups.length) {
       el.append(h('div', { class: 'empty' }, h('strong', {}, empty[0]), h('p', { class: 'muted' }, empty[1])));
       return;
     }
-    groups.forEach((g) => el.append(group(g, handlers, state.view)));
-  }
-
-  /* ---------- Secciones ---------- */
-  function fillCategorySelect(select, value) {
-    select.replaceChildren(
-      h('option', { value: '' }, 'Sin sección'),
-      ...App.categories.all().map((c) => h('option', { value: c.id }, c.name))
-    );
-    select.value = App.categories.get(value) ? value : '';
-  }
-
-  function renderSections(el, state, { onSelect, onNew, onEdit }) {
-    const counts = App.tasks.pendingByCategory();
-    const chip = (key, label, color, count) => h('button', {
-      type: 'button', class: 'sec' + (state.category === key ? ' active' : ''),
-      style: color ? `--cat:${color}` : null, 'aria-pressed': String(state.category === key),
-      onclick: () => onSelect(key),
-    }, color ? h('span', { class: 'dot' }) : null, label, count ? h('span', { class: 'count' }, String(count)) : null);
-
-    const cats = App.categories.all();
-    const total = Object.values(counts).reduce((a, b) => a + b, 0);
-    const active = App.categories.get(state.category);
-
-    el.replaceChildren(...[
-      cats.length ? chip(null, 'Todas', null, total) : null,
-      ...cats.map((c) => chip(c.id, c.name, c.color, counts[c.id])),
-      cats.length && counts.none ? chip('none', 'Sin sección', null, counts.none) : null,
-      active ? h('button', { type: 'button', class: 'icon-btn sm', title: 'Editar sección', 'aria-label': 'Editar sección', onclick: () => onEdit(active.id) }, icon('edit')) : null,
-      h('button', { type: 'button', class: 'sec new', onclick: onNew }, '+ Nueva sección'),
-    ].filter(Boolean));
-  }
-
-  function openCategoryEditor(cat, { onSave, onDelete }) {
-    const dlg = document.getElementById('cat-dialog');
-    const name = document.getElementById('cat-name');
-    const box = document.getElementById('cat-colors');
-    const colors = App.categories.COLORS;
-    let color = cat ? cat.color : colors[App.categories.all().length % colors.length];
-
-    document.getElementById('cat-heading').textContent = cat ? 'Editar sección' : 'Nueva sección';
-    document.getElementById('cat-delete').hidden = !cat;
-    name.value = cat ? cat.name : '';
-
-    const paint = () => box.replaceChildren(...colors.map((c) => h('button', {
-      type: 'button', class: 'swatch' + (c === color ? ' on' : ''), style: `--cat:${c}`,
-      role: 'radio', 'aria-checked': String(c === color), 'aria-label': c,
-      onclick: () => { color = c; paint(); },
-    })));
-    paint();
-
-    document.getElementById('cat-form').onsubmit = (e) => {
-      e.preventDefault();
-      if (!name.value.trim()) return;
-      onSave({ name: name.value, color });
-      dlg.close();
-    };
-    document.getElementById('cat-cancel').onclick = () => dlg.close();
-    document.getElementById('cat-delete').onclick = () => { dlg.close(); onDelete(); };
-
-    dlg.showModal();
-    name.focus();
-    name.select();
-  }
-
-  /* ---------- Selector de vista (lista / cuadros) ---------- */
-  const VIEW_ICONS = {
-    list: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>',
-    tiles: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>',
-  };
-
-  function renderViewToggle(el, state, onView) {
-    const btn = (view, label) => {
-      const b = h('button', {
-        type: 'button', class: 'view-btn' + (state.view === view ? ' active' : ''),
-        title: label, 'aria-label': label, 'aria-pressed': String(state.view === view),
-        onclick: () => onView(view),
-      });
-      b.innerHTML = VIEW_ICONS[view]; // SVG estático propio
-      return b;
-    };
-    el.replaceChildren(btn('list', 'Ver como lista'), btn('tiles', 'Ver como cuadros'));
+    groups.forEach((g) => el.append(group(g, handlers)));
   }
 
   /* ---------- Pestañas y filtro ---------- */
@@ -199,20 +111,18 @@
     const title = document.getElementById('ed-title');
     const date = document.getElementById('ed-date');
     const time = document.getElementById('ed-time');
-    const cat = document.getElementById('ed-cat');
     const syncTime = () => { time.disabled = !date.value; if (!date.value) time.value = ''; };
 
     title.value = task.title;
     date.value = task.date || '';
     time.value = task.time || '';
-    fillCategorySelect(cat, task.categoryId);
     syncTime();
     date.oninput = syncTime;
 
     document.getElementById('edit-form').onsubmit = (e) => {
       e.preventDefault();
       if (!title.value.trim()) return;
-      onSave({ title: title.value, date: date.value, time: time.value, categoryId: cat.value });
+      onSave({ title: title.value, date: date.value, time: time.value });
       dlg.close();
     };
     document.getElementById('ed-cancel').onclick = () => dlg.close();
@@ -244,5 +154,5 @@
       : 'Activar notificaciones del navegador';
   }
 
-  App.ui = { h, renderList, renderSections, fillCategorySelect, openCategoryEditor, renderViewToggle, renderTabs, renderFilterChip, openEditor, toast, renderBell };
+  App.ui = { h, renderList, renderTabs, renderFilterChip, openEditor, toast, renderBell };
 })(window.App);

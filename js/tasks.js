@@ -1,9 +1,9 @@
 /* Modelo de tareas: CRUD, estados y agrupación. No toca el DOM.
-   Tarea: { id, title, categoryId|null, date|null, time|null, done, doneAt|null, createdAt, notified:{pre,due} } */
+   Tarea: { id, title, date|null, time|null, done, doneAt|null, createdAt, notified:{pre,due} } */
 (function (App) {
   const { dueAt, today, addDays } = App.dates;
 
-  let tasks = App.storage.load();
+  let tasks = [];
   const listeners = [];
 
   const commit = () => {
@@ -19,22 +19,22 @@
     (a.time || '99:99').localeCompare(b.time || '99:99') ||
     a.createdAt - b.createdAt;
 
-  /** cat: null = todas, 'none' = sin sección, o un id. */
-  const inCat = (t, cat) => !cat || (cat === 'none' ? !t.categoryId : t.categoryId === cat);
-
   const isOverdue = (t, now = new Date()) => !t.done && !!t.date && dueAt(t) < now;
 
   App.tasks = {
+    /** Carga las tareas ya leídas del almacenamiento (no vuelve a guardar). */
+    init(list) {
+      tasks = list;
+    },
     onChange: (fn) => listeners.push(fn),
     all: () => tasks,
     isOverdue,
     byDue,
 
-    add({ title, date, time, categoryId }) {
+    add({ title, date, time }) {
       const t = {
         id: uid(),
         title: title.trim(),
-        categoryId: clean(categoryId),
         date: clean(date),
         time: date ? clean(time) : null,
         done: false,
@@ -47,12 +47,11 @@
       return t;
     },
 
-    update(id, { title, date, time, categoryId }) {
+    update(id, { title, date, time }) {
       const t = tasks.find((x) => x.id === id);
       if (!t) return;
       const changedWhen = t.date !== clean(date) || t.time !== (date ? clean(time) : null);
       t.title = title.trim();
-      t.categoryId = clean(categoryId);
       t.date = clean(date);
       t.time = date ? clean(time) : null;
       if (changedWhen) t.notified = { pre: false, due: false };
@@ -88,23 +87,6 @@
       }
     },
 
-    /** Pendientes por sección: { [categoryId | 'none']: n }. */
-    pendingByCategory() {
-      const map = {};
-      tasks.forEach((t) => {
-        if (t.done) return;
-        const k = t.categoryId || 'none';
-        map[k] = (map[k] || 0) + 1;
-      });
-      return map;
-    },
-
-    /** Al borrar una sección, sus tareas quedan sin sección. */
-    clearCategory(categoryId) {
-      tasks.forEach((t) => { if (t.categoryId === categoryId) t.categoryId = null; });
-      commit();
-    },
-
     counts(now = new Date()) {
       const pending = tasks.filter((t) => !t.done);
       return {
@@ -115,8 +97,8 @@
     },
 
     /** Pendientes agrupadas: Vencidas, luego cada fecha, y al final "Sin fecha". */
-    groupPending(now = new Date(), cat = null) {
-      const pending = tasks.filter((t) => !t.done && inCat(t, cat)).sort(byDue);
+    groupPending(now = new Date()) {
+      const pending = tasks.filter((t) => !t.done).sort(byDue);
       const groups = [];
       const overdue = pending.filter((t) => isOverdue(t, now));
       if (overdue.length) groups.push({ key: 'overdue', label: 'Vencidas', tone: 'danger', items: overdue, showDate: true });
@@ -137,21 +119,21 @@
     },
 
     /** Todas las tareas de un día: pendientes primero. */
-    forDay(iso, cat = null) {
+    forDay(iso) {
       return tasks
-        .filter((t) => t.date === iso && inCat(t, cat))
+        .filter((t) => t.date === iso)
         .sort((a, b) => Number(a.done) - Number(b.done) || byDue(a, b));
     },
 
-    completed(cat = null) {
-      return tasks.filter((t) => t.done && inCat(t, cat)).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0));
+    completed() {
+      return tasks.filter((t) => t.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0));
     },
 
     /** Mapa fecha -> {pending, overdue} para los puntos del calendario. */
-    daySummary(now = new Date(), cat = null) {
+    daySummary(now = new Date()) {
       const map = {};
       tasks.forEach((t) => {
-        if (!t.date || t.done || !inCat(t, cat)) return;
+        if (!t.date || t.done) return;
         const s = (map[t.date] = map[t.date] || { pending: 0, overdue: 0 });
         s.pending++;
         if (isOverdue(t, now)) s.overdue++;
